@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>每餐米饭计算器</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        label { display: block; margin-top: 10px; }
+        input, select, button { width: 100%; padding: 8px; margin-top: 5px; }
+        #result { margin-top: 20px; font-size: 1.2em; color: #2a9d8f; }
+        #note { margin-top: 10px; font-size: 0.9em; color: #555; white-space: pre-line; }
+    </style>
+</head>
+<body>
+    <h1>每餐米饭计算器</h1>
+    <label>性别:
+        <select id="gender">
+            <option value="female" selected>女</option>
+            <option value="male">男</option>
+        </select>
+    </label>
+    <label>身高 (cm):<input type="number" id="height" /></label>
+    <label>体重 (kg):<input type="number" id="weight" /></label>
+    <label>年龄:<input type="number" id="age" /></label>
+    <label>运动强度:
+        <select id="activity">
+            <option value="1.2">轻度（久坐）</option>
+            <option value="1.3">低度（每周锻炼1-2次）</option>
+            <option value="1.5">中度（每周锻炼3-5次）</option>
+            <option value="1.8">重度（高强度工作或每天锻炼）</option>
+        </select>
+    </label>
+    <label>是否哺乳期:
+        <select id="lactation">
+            <option value="no" selected>否</option>
+            <option value="yes">是</option>
+        </select>
+    </label>
+    <button onclick="calculateRice()">计算</button>
+
+    <div id="result"></div>
+    <div id="note"></div>
+
+    <script>
+        function calculateRice() {
+            const gender = document.getElementById('gender').value;
+            const height = parseFloat(document.getElementById('height').value);
+            const weight = parseFloat(document.getElementById('weight').value);
+            const age = parseFloat(document.getElementById('age').value);
+            const activity = parseFloat(document.getElementById('activity').value);
+            const lactation = document.getElementById('lactation').value;
+
+            let bmr;
+            if (gender === 'male') {
+                bmr = 66 + (13.7 * weight) + (5 * height) - (6.8 * age);
+            } else {
+                bmr = 655 + (9.6 * weight) + (1.8 * height) - (4.7 * age);
+            }
+
+            let totalCalories = bmr * activity; // TDEE: Total Daily Energy Expenditure (每日总热量)
+            if (lactation === 'yes') {
+                totalCalories += 500; // 哺乳期额外增加 500 kcal
+            }
+
+            const caloriesPerMeal = totalCalories / 3; // 每餐热量 = TDEE ÷ 3
+
+            // 假设米饭提供约90%的碳水来源，剩余10%来自其他食物
+            const carbCalories = totalCalories * 0.5; // 50% 热量来自碳水
+            const carbGrams = carbCalories / 4; // 每克碳水 4 kcal
+            const carbsPerMeal = carbGrams / 3; // 每餐碳水克数
+            const riceCarbPerMeal = carbsPerMeal * 0.9; // 米饭承担90%碳水
+
+            const riceRawWeight = riceCarbPerMeal / 0.77; // 米饭碳水含量77%
+            const riceCookedWeight = riceRawWeight * 2.5; // 熟重/生重比 2.5
+
+            // 面食计算（假设碳水含量55%，熟重/生重比1.5）
+            const noodleRawWeight = riceCarbPerMeal / 0.55;
+            const noodleCookedWeight = noodleRawWeight * 1.5;
+
+            // 蛋白质计算
+            const proteinCalories = totalCalories * 0.2; // 20% 热量来自蛋白质
+            const proteinGrams = proteinCalories / 4; // 每克蛋白质 4 kcal
+            const proteinPerMeal = proteinGrams / 3; // 每餐蛋白质克数
+
+            // 举例换算（大约值）：
+            const chickenWeight = proteinPerMeal / 0.25; // 鸡胸肉蛋白质含量约25%
+            const fishWeight = proteinPerMeal / 0.20;    // 鱼肉约20%
+            const beefWeight = proteinPerMeal / 0.22;    // 牛肉约22%
+
+            document.getElementById('result').innerHTML =
+                `每餐推荐热量约 <strong>${caloriesPerMeal.toFixed(0)} kcal</strong><br>` +
+                `每餐建议米饭熟重约 <strong>${riceCookedWeight.toFixed(0)} 克</strong><br>` +
+                `或面食熟重约 <strong>${noodleCookedWeight.toFixed(0)} 克</strong><br>` +
+                `每餐建议蛋白质约 <strong>${proteinPerMeal.toFixed(1)} 克</strong><br>` +
+                `举例：鸡胸肉约 <strong>${chickenWeight.toFixed(0)} 克</strong>，鱼肉约 <strong>${fishWeight.toFixed(0)} 克</strong>，牛肉约 <strong>${beefWeight.toFixed(0)} 克</strong>`;
+
+            document.getElementById('note').innerHTML =
+                "计算公式：\n" +
+                "BMR (男) = 66 + 13.7×体重(kg) + 5×身高(cm) - 6.8×年龄\n" +
+                "BMR (女) = 655 + 9.6×体重(kg) + 1.8×身高(cm) - 4.7×年龄\n" +
+                "TDEE (每日总热量) = BMR × 活动系数 + 哺乳期(如有)+500 kcal\n" +
+                "每餐热量 = TDEE ÷ 3\n" +
+                "碳水(g) = TDEE × 50% ÷ 4\n" +
+                "每餐碳水 = 碳水(g) ÷ 3\n" +
+                "米饭碳水 = 每餐碳水 × 90%\n" +
+                "每餐米饭熟重 = 米饭碳水 ÷ 0.77 × 2.5\n" +
+                "每餐面食熟重 = 米饭碳水 ÷ 0.55 × 1.5\n" +
+                "蛋白质(g) = TDEE × 20% ÷ 4\n" +
+                "每餐蛋白质举例换算：鸡胸肉25%、鱼肉20%、牛肉22%蛋白质含量\n" +
+                "注：假设每餐碳水约90%由米饭或面食提供，面食碳水含量约55%。";
+        }
+    </script>
+</body>
+</html>
